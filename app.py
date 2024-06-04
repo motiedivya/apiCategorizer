@@ -177,7 +177,7 @@ def export():
         story.append(Spacer(1, 12))
 
         # Response Codes Section
-        if api['response_codes']:
+        if api['response_codes'] and any(api['response_codes']):
             story.append(Paragraph("Response Codes", section_heading))
             for code in api['response_codes']:
                 story.append(Paragraph(f"{code['statusCode']}: {code['description']}", styles['BodyText']))
