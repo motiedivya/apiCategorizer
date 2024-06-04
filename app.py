@@ -246,19 +246,26 @@ def load_user(user_id):
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    error = None
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
         password = request.form['password']
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         
-        new_user = User(username=username, email=email, password=hashed_password)
-        db.session.add(new_user)
-        db.session.commit()
-        
-        login_user(new_user)
-        return redirect(url_for('index'))
-    return render_template('register.html')
+        # Check if email already exists
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user is not None:
+            error = 'Email already registered. Please use a different email.'
+        else:
+            hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+            new_user = User(username=username, email=email, password=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
+            login_user(new_user)
+            return redirect(url_for('index'))
+    
+    return render_template('register.html', error=error)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
