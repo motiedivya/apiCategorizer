@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Categorizer</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Categorizer</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>API Name</th>
+                <th>API Curl Command</th>
+                <th>Execute</th>
+                <th>Category</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody id="api-table-body">
+            {% for api in apis %}
+            <tr>
+                <td>{{ api.name }}</td>
+                <td>{{ api.curl }}</td>
+                <td><button onclick="executeApi({{ loop.index0 }})">Execute</button></td>
+                <td id="category-{{ loop.index0 }}">{{ api.category }}</td>
+                <td><button onclick="deleteApi({{ loop.index0 }})">Delete</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <button onclick="addApiRow()">+</button>
+    <script>
+        function executeApi(index) {
+            const formData = new FormData();
+            formData.append('index', index);
+            fetch('/execute', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+            .then(data => {
+                document.getElementById(`category-${data.index}`).innerText = data.category;
+            });
+        }
+
+        function addApiRow() {
+            const apiName = prompt("Enter API name:");
+            const curlCommand = prompt("Enter curl command:");
+            if (apiName && curlCommand) {
+                const formData = new FormData();
+                formData.append('api_name', apiName);
+                formData.append('curl_command', curlCommand);
+                fetch('/add_api', {
+                    method: 'POST',
+                    body: formData
+                }).then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('api-table-body');
+                    tbody.innerHTML = '';
+                    data.apis.forEach((api, index) => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${api.name}</td>
+                            <td>${api.curl}</td>
+                            <td><button onclick="executeApi(${index})">Execute</button></td>
+                            <td id="category-${index}">${api.category}</td>
+                            <td><button onclick="deleteApi(${index})">Delete</button></td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                });
+            }
+        }
+
+        function deleteApi(index) {
+            const formData = new FormData();
+            formData.append('index', index);
+            fetch('/delete_api', {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+            .then(data => {
+                const tbody = document.getElementById('api-table-body');
+                tbody.innerHTML = '';
+                data.apis.forEach((api, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${api.name}</td>
+                        <td>${api.curl}</td>
+                        <td><button onclick="executeApi(${index})">Execute</button></td>
+                        <td id="category-${index}">${api.category}</td>
+                        <td><button onclick="deleteApi(${index})">Delete</button></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
