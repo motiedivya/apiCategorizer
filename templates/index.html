@@ -41,6 +41,7 @@
         </tbody>
     </table>
     <button onclick="addApiRow()">+</button>
+    <button onclick="exportDocumentation()">Export</button>
     <script>
         function executeApi(index) {
             const formData = new FormData();
@@ -104,6 +105,21 @@
                     `;
                     tbody.appendChild(row);
                 });
+            });
+        }
+
+        function exportDocumentation() {
+            fetch('/export', {
+                method: 'POST'
+            }).then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "API_Documentation.pdf";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
             });
         }
     </script>
