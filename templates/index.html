@@ -102,7 +102,15 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="responseCodes">Response Codes</label>
-                                    <textarea class="form-control" id="responseCodes" rows="2" required></textarea>
+                                    <div id="responseCodesContainer">
+                                        <div class="input-group mb-3">
+                                            <input type="number" class="form-control" placeholder="Status Code" required>
+                                            <input type="text" class="form-control" placeholder="Description" required>
+                                            <div class="input-group-append">
+                                                <button class="btn btn-success" type="button" onclick="addResponseCode()">+</button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="rateLimiting">Rate Limiting</label>
@@ -155,12 +163,36 @@
             $('#addApiModal').modal('show');
         }
 
+        function addResponseCode() {
+            const container = document.getElementById('responseCodesContainer');
+            const div = document.createElement('div');
+            div.className = 'input-group mb-3';
+            div.innerHTML = `
+                <input type="number" class="form-control" placeholder="Status Code" required>
+                <input type="text" class="form-control" placeholder="Description" required>
+                <div class="input-group-append">
+                    <button class="btn btn-danger" type="button" onclick="removeResponseCode(this)">-</button>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeResponseCode(button) {
+            const container = document.getElementById('responseCodesContainer');
+            container.removeChild(button.closest('.input-group'));
+        }
+
         function addApi() {
             const apiName = document.getElementById('apiName').value;
             const curlCommand = document.getElementById('curlCommand').value;
             const introduction = document.getElementById('introduction').value;
             const authentication = document.getElementById('authentication').value;
-            const responseCodes = document.getElementById('responseCodes').value;
+            const responseCodes = [];
+            document.querySelectorAll('#responseCodesContainer .input-group').forEach(group => {
+                const statusCode = group.querySelector('input[type="number"]').value;
+                const description = group.querySelector('input[type="text"]').value;
+                responseCodes.push({ statusCode, description });
+            });
             const rateLimiting = document.getElementById('rateLimiting').value;
             const errors = document.getElementById('errors').value;
             const pagination = document.getElementById('pagination').value;
@@ -172,7 +204,7 @@
                 formData.append('curl_command', curlCommand);
                 formData.append('introduction', introduction);
                 formData.append('authentication', authentication);
-                formData.append('response_codes', responseCodes);
+                formData.append('response_codes', JSON.stringify(responseCodes));
                 formData.append('rate_limiting', rateLimiting);
                 formData.append('errors', errors);
                 formData.append('pagination', pagination);

@@ -3,7 +3,9 @@ import subprocess
 import time
 import shlex
 import io
+import json
 from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
@@ -81,7 +83,7 @@ def add_api():
     curl_command = request.form['curl_command']
     introduction = request.form['introduction']
     authentication = request.form['authentication']
-    response_codes = request.form['response_codes']
+    response_codes = json.loads(request.form['response_codes'])
     rate_limiting = request.form['rate_limiting']
     errors = request.form['errors']
     pagination = request.form['pagination']
@@ -163,7 +165,8 @@ def export():
 
         # Response Codes Section
         story.append(Paragraph("Response Codes", section_heading))
-        story.append(Paragraph(api['response_codes'], styles['BodyText']))
+        for code in api['response_codes']:
+            story.append(Paragraph(f"{code['statusCode']}: {code['description']}", styles['BodyText']))
         story.append(Spacer(1, 12))
 
         # Rate Limiting Section
