@@ -4,10 +4,9 @@ import time
 import shlex
 import io
 from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -129,7 +128,6 @@ def export():
         spaceAfter=12,
         spaceBefore=12,
     )
-
     story.append(Paragraph("API Documentation", styles['Title']))
     story.append(Spacer(1, 12))
 
@@ -138,68 +136,56 @@ def export():
         story.append(Paragraph(api['name'], styles['Heading1']))
         story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.black, spaceBefore=1, spaceAfter=1))
         story.append(Spacer(1, 12))
-        
+
         # Introduction Section
         story.append(Paragraph("Introduction", section_heading))
         story.append(Paragraph(api['introduction'], styles['BodyText']))
         story.append(Spacer(1, 12))
-        
+
         # Authentication Section
         story.append(Paragraph("Authentication", section_heading))
         story.append(Paragraph(api['authentication'], styles['BodyText']))
         story.append(Spacer(1, 12))
-        
+
         # Endpoint Section
         story.append(Paragraph("Endpoints", section_heading))
         story.append(Spacer(1, 12))
-        story.append(Paragraph(f"Curl Command: <code>{api['curl']}</code>", styles['BodyText']))
-        story.append(Spacer(1, 6))
-        
-        data = [
-            ["Method", "Endpoint", "Request Headers", "Request Body", "Response Status", "Response Body", "Category"],
-            [api['method'], api['endpoint'], api['request_headers'], api['request_body'], api['response_status'], api['response_body'], api['category']]
-        ]
-        
-        table = Table(data, colWidths=[50, 80, 80, 80, 50, 80, 50])
-        table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ]))
-        story.append(table)
+        story.append(Paragraph(f"Curl Command: {api['curl']}", styles['BodyText']))
+        story.append(Paragraph(f"Method: {api['method']}", styles['BodyText']))
+        story.append(Paragraph(f"Endpoint: {api['endpoint']}", styles['BodyText']))
+        story.append(Paragraph(f"Request Headers: {api['request_headers']}", styles['BodyText']))
+        story.append(Paragraph(f"Request Body: {api['request_body']}", styles['BodyText']))
+        story.append(Paragraph(f"Response Status: {api['response_status']}", styles['BodyText']))
+        story.append(Paragraph(f"Response Body: {api['response_body']}", styles['BodyText']))
+        story.append(Paragraph(f"Category: {api['category']}", styles['BodyText']))
 
         story.append(Spacer(1, 12))
-        
+
         # Response Codes Section
         story.append(Paragraph("Response Codes", section_heading))
         story.append(Paragraph(api['response_codes'], styles['BodyText']))
         story.append(Spacer(1, 12))
-        
+
         # Rate Limiting Section
         story.append(Paragraph("Rate Limiting", section_heading))
         story.append(Paragraph(api['rate_limiting'], styles['BodyText']))
         story.append(Spacer(1, 12))
-        
+
         # Errors Section
         story.append(Paragraph("Errors", section_heading))
         story.append(Paragraph(api['errors'], styles['BodyText']))
         story.append(Spacer(1, 12))
-        
+
         # Pagination Section
         story.append(Paragraph("Pagination", section_heading))
         story.append(Paragraph(api['pagination'], styles['BodyText']))
         story.append(Spacer(1, 12))
-        
+
         # Versioning Section
         story.append(Paragraph("Versioning", section_heading))
         story.append(Paragraph(api['versioning'], styles['BodyText']))
         story.append(Spacer(1, 12))
-        
+
         # Add a visual separator between APIs
         story.append(HRFlowable(width="100%", thickness=2, lineCap='round', color=colors.black, spaceBefore=1, spaceAfter=1))
         story.append(Spacer(1, 12))
