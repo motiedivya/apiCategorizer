@@ -5,9 +5,9 @@ import shlex
 import io
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -80,6 +80,14 @@ def execute():
 def add_api():
     api_name = request.form['api_name']
     curl_command = request.form['curl_command']
+    introduction = request.form['introduction']
+    authentication = request.form['authentication']
+    response_codes = request.form['response_codes']
+    rate_limiting = request.form['rate_limiting']
+    errors = request.form['errors']
+    pagination = request.form['pagination']
+    versioning = request.form['versioning']
+
     method, endpoint, request_headers, request_body = parse_curl_command(curl_command)
     apis.append({
         'name': api_name,
@@ -90,7 +98,14 @@ def add_api():
         'request_body': request_body,
         'response_status': '',
         'response_body': '',
-        'category': ''
+        'category': '',
+        'introduction': introduction,
+        'authentication': authentication,
+        'response_codes': response_codes,
+        'rate_limiting': rate_limiting,
+        'errors': errors,
+        'pagination': pagination,
+        'versioning': versioning
     })
     return jsonify(apis=apis)
 
@@ -107,19 +122,36 @@ def export():
     styles = getSampleStyleSheet()
     story = []
 
+    # Custom styles
+    section_heading = ParagraphStyle(
+        'section_heading',
+        parent=styles['Heading2'],
+        spaceAfter=12,
+        spaceBefore=12,
+    )
+
     story.append(Paragraph("API Documentation", styles['Title']))
     story.append(Spacer(1, 12))
-    story.append(Paragraph("Introduction", styles['Heading2']))
-    story.append(Paragraph("The User Information API provides access to user data within our system. It allows developers to retrieve details about users registered in our platform.", styles['BodyText']))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph("Authentication", styles['Heading2']))
-    story.append(Paragraph("This API requires API key authentication. Developers must include their API key in the request headers for authentication.", styles['BodyText']))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph("Endpoints", styles['Heading2']))
 
     for api in apis:
+        # API Title
+        story.append(Paragraph(api['name'], styles['Heading1']))
+        story.append(HRFlowable(width="100%", thickness=1, lineCap='round', color=colors.black, spaceBefore=1, spaceAfter=1))
         story.append(Spacer(1, 12))
-        story.append(Paragraph(f"API Name: {api['name']}", styles['Heading3']))
+        
+        # Introduction Section
+        story.append(Paragraph("Introduction", section_heading))
+        story.append(Paragraph(api['introduction'], styles['BodyText']))
+        story.append(Spacer(1, 12))
+        
+        # Authentication Section
+        story.append(Paragraph("Authentication", section_heading))
+        story.append(Paragraph(api['authentication'], styles['BodyText']))
+        story.append(Spacer(1, 12))
+        
+        # Endpoint Section
+        story.append(Paragraph("Endpoints", section_heading))
+        story.append(Spacer(1, 12))
         story.append(Paragraph(f"Curl Command: <code>{api['curl']}</code>", styles['BodyText']))
         story.append(Spacer(1, 6))
         
@@ -128,40 +160,49 @@ def export():
             [api['method'], api['endpoint'], api['request_headers'], api['request_body'], api['response_status'], api['response_body'], api['category']]
         ]
         
-        table = Table(data, colWidths=[60, 100, 100, 100, 60, 100, 60])
+        table = Table(data, colWidths=[50, 80, 80, 80, 50, 80, 50])
         table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
             ('GRID', (0, 0), (-1, -1), 1, colors.black),
         ]))
         story.append(table)
 
-    story.append(Spacer(1, 12))
-    story.append(Paragraph("Response Codes", styles['Heading2']))
-    story.append(Paragraph("200 OK: Request successful, returns user data.", styles['BodyText']))
-    story.append(Paragraph("201 Created: User created successfully.", styles['BodyText']))
-    story.append(Paragraph("400 Bad Request: Invalid request format or missing parameters.", styles['BodyText']))
-    story.append(Paragraph("401 Unauthorized: API key missing or invalid.", styles['BodyText']))
-    story.append(Paragraph("404 Not Found: User not found.", styles['BodyText']))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph("Rate Limiting", styles['Heading2']))
-    story.append(Paragraph("This API has a rate limit of 100 requests per hour per API key.", styles['BodyText']))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph("Errors", styles['Heading2']))
-    story.append(Paragraph("400 Bad Request: Invalid request format. Check the request body and parameters.", styles['BodyText']))
-    story.append(Paragraph("401 Unauthorized: Invalid API key. Make sure to include a valid API key in the request headers.", styles['BodyText']))
-    story.append(Paragraph("404 Not Found: The requested user was not found.", styles['BodyText']))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph("Pagination", styles['Heading2']))
-    story.append(Paragraph("Pagination is not supported in this version of the API.", styles['BodyText']))
-    story.append(Spacer(1, 12))
-    story.append(Paragraph("Versioning", styles['Heading2']))
-    story.append(Paragraph("This is version 1 of the User Information API. Future updates will be backward compatible.", styles['BodyText']))
+        story.append(Spacer(1, 12))
+        
+        # Response Codes Section
+        story.append(Paragraph("Response Codes", section_heading))
+        story.append(Paragraph(api['response_codes'], styles['BodyText']))
+        story.append(Spacer(1, 12))
+        
+        # Rate Limiting Section
+        story.append(Paragraph("Rate Limiting", section_heading))
+        story.append(Paragraph(api['rate_limiting'], styles['BodyText']))
+        story.append(Spacer(1, 12))
+        
+        # Errors Section
+        story.append(Paragraph("Errors", section_heading))
+        story.append(Paragraph(api['errors'], styles['BodyText']))
+        story.append(Spacer(1, 12))
+        
+        # Pagination Section
+        story.append(Paragraph("Pagination", section_heading))
+        story.append(Paragraph(api['pagination'], styles['BodyText']))
+        story.append(Spacer(1, 12))
+        
+        # Versioning Section
+        story.append(Paragraph("Versioning", section_heading))
+        story.append(Paragraph(api['versioning'], styles['BodyText']))
+        story.append(Spacer(1, 12))
+        
+        # Add a visual separator between APIs
+        story.append(HRFlowable(width="100%", thickness=2, lineCap='round', color=colors.black, spaceBefore=1, spaceAfter=1))
+        story.append(Spacer(1, 12))
 
     doc.build(story)
     buffer.seek(0)
