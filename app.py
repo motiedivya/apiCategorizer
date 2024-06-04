@@ -50,7 +50,21 @@ def execute():
 def add_api():
     api_name = request.form['api_name']
     curl_command = request.form['curl_command']
-    apis.append({'name': api_name, 'curl': curl_command, 'category': ''})
+    method = request.form['method']
+    endpoint = request.form['endpoint']
+    request_headers = request.form['request_headers']
+    request_body = request.form['request_body']
+    response_body = request.form['response_body']
+    apis.append({
+        'name': api_name,
+        'curl': curl_command,
+        'method': method,
+        'endpoint': endpoint,
+        'request_headers': request_headers,
+        'request_body': request_body,
+        'response_body': response_body,
+        'category': ''
+    })
     return jsonify(apis=apis)
 
 @app.route('/delete_api', methods=['POST'])
@@ -65,17 +79,69 @@ def export():
     pdf = canvas.Canvas(buffer, pagesize=letter)
     pdf.setTitle("API Documentation")
 
-    pdf.drawString(30, 750, "API Documentation")
-    pdf.drawString(30, 735, "------------------")
-
-    y = 700
+    pdf.drawString(30, 750, "User Information API Documentation")
+    pdf.drawString(30, 735, "Introduction")
+    pdf.drawString(30, 720, "The User Information API provides access to user data within our system. It allows developers to retrieve details about users registered in our platform.")
+    pdf.drawString(30, 705, "Authentication")
+    pdf.drawString(30, 690, "This API requires API key authentication. Developers must include their API key in the request headers for authentication.")
+    
+    pdf.drawString(30, 675, "Endpoints")
+    
+    y = 660
     for api in apis:
         pdf.drawString(30, y, f"API Name: {api['name']}")
         y -= 15
         pdf.drawString(30, y, f"Curl Command: {api['curl']}")
         y -= 15
+        pdf.drawString(30, y, f"Method: {api['method']}")
+        y -= 15
+        pdf.drawString(30, y, f"Endpoint: {api['endpoint']}")
+        y -= 15
+        pdf.drawString(30, y, f"Request Headers: {api['request_headers']}")
+        y -= 15
+        pdf.drawString(30, y, f"Request Body: {api['request_body']}")
+        y -= 15
+        pdf.drawString(30, y, f"Response Body: {api['response_body']}")
+        y -= 15
         pdf.drawString(30, y, f"Category: {api['category']}")
         y -= 30
+
+    pdf.drawString(30, y, "Response Codes")
+    y -= 15
+    pdf.drawString(30, y, "200 OK: Request successful, returns user data.")
+    y -= 15
+    pdf.drawString(30, y, "201 Created: User created successfully.")
+    y -= 15
+    pdf.drawString(30, y, "400 Bad Request: Invalid request format or missing parameters.")
+    y -= 15
+    pdf.drawString(30, y, "401 Unauthorized: API key missing or invalid.")
+    y -= 15
+    pdf.drawString(30, y, "404 Not Found: User not found.")
+    y -= 30
+
+    pdf.drawString(30, y, "Rate Limiting")
+    y -= 15
+    pdf.drawString(30, y, "This API has a rate limit of 100 requests per hour per API key.")
+    y -= 30
+
+    pdf.drawString(30, y, "Errors")
+    y -= 15
+    pdf.drawString(30, y, "400 Bad Request: Invalid request format. Check the request body and parameters.")
+    y -= 15
+    pdf.drawString(30, y, "401 Unauthorized: Invalid API key. Make sure to include a valid API key in the request headers.")
+    y -= 15
+    pdf.drawString(30, y, "404 Not Found: The requested user was not found.")
+    y -= 30
+
+    pdf.drawString(30, y, "Pagination")
+    y -= 15
+    pdf.drawString(30, y, "Pagination is not supported in this version of the API.")
+    y -= 30
+
+    pdf.drawString(30, y, "Versioning")
+    y -= 15
+    pdf.drawString(30, y, "This is version 1 of the User Information API. Future updates will be backward compatible.")
+    y -= 30
 
     pdf.save()
     buffer.seek(0)

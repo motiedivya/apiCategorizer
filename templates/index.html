@@ -23,6 +23,11 @@
             <tr>
                 <th>API Name</th>
                 <th>API Curl Command</th>
+                <th>Method</th>
+                <th>Endpoint</th>
+                <th>Request Headers</th>
+                <th>Request Body</th>
+                <th>Response Body</th>
                 <th>Execute</th>
                 <th>Category</th>
                 <th>Delete</th>
@@ -33,6 +38,11 @@
             <tr>
                 <td>{{ api.name }}</td>
                 <td>{{ api.curl }}</td>
+                <td>{{ api.method }}</td>
+                <td>{{ api.endpoint }}</td>
+                <td>{{ api.request_headers }}</td>
+                <td>{{ api.request_body }}</td>
+                <td>{{ api.response_body }}</td>
                 <td><button onclick="executeApi({{ loop.index0 }})">Execute</button></td>
                 <td id="category-{{ loop.index0 }}">{{ api.category }}</td>
                 <td><button onclick="deleteApi({{ loop.index0 }})">Delete</button></td>
@@ -58,10 +68,20 @@
         function addApiRow() {
             const apiName = prompt("Enter API name:");
             const curlCommand = prompt("Enter curl command:");
+            const method = prompt("Enter method (GET/POST):");
+            const endpoint = prompt("Enter endpoint:");
+            const requestHeaders = prompt("Enter request headers:");
+            const requestBody = prompt("Enter request body:");
+            const responseBody = prompt("Enter response body:");
             if (apiName && curlCommand) {
                 const formData = new FormData();
                 formData.append('api_name', apiName);
                 formData.append('curl_command', curlCommand);
+                formData.append('method', method);
+                formData.append('endpoint', endpoint);
+                formData.append('request_headers', requestHeaders);
+                formData.append('request_body', requestBody);
+                formData.append('response_body', responseBody);
                 fetch('/add_api', {
                     method: 'POST',
                     body: formData
@@ -74,6 +94,11 @@
                         row.innerHTML = `
                             <td>${api.name}</td>
                             <td>${api.curl}</td>
+                            <td>${api.method}</td>
+                            <td>${api.endpoint}</td>
+                            <td>${api.request_headers}</td>
+                            <td>${api.request_body}</td>
+                            <td>${api.response_body}</td>
                             <td><button onclick="executeApi(${index})">Execute</button></td>
                             <td id="category-${index}">${api.category}</td>
                             <td><button onclick="deleteApi(${index})">Delete</button></td>
@@ -99,6 +124,11 @@
                     row.innerHTML = `
                         <td>${api.name}</td>
                         <td>${api.curl}</td>
+                        <td>${api.method}</td>
+                        <td>${api.endpoint}</td>
+                        <td>${api.request_headers}</td>
+                        <td>${api.request_body}</td>
+                        <td>${api.response_body}</td>
                         <td><button onclick="executeApi(${index})">Execute</button></td>
                         <td id="category-${index}">${api.category}</td>
                         <td><button onclick="deleteApi(${index})">Delete</button></td>
