@@ -56,7 +56,7 @@ def parse_curl_command(curl_command):
             header = args[i + 1].split(':', 1)
             if len(header) == 2:
                 headers[header[0].strip()] = header[1].strip()
-        elif arg in ['--data', '--data-raw', '--data-binary'] and i + 1 < len(args):
+        elif arg in ['--data', '--data-raw', '--data-binary', '-d'] and i + 1 < len(args):
             data = args[i + 1]
 
     headers_str = '\n'.join([f"{k}: {v}" for k, v in headers.items()])
@@ -70,6 +70,11 @@ def index():
 def execute():
     index = int(request.form['index'])
     curl_command = apis[index]['curl']
+    
+    # Parse the curl command to get the request body
+    method, endpoint, request_headers, request_body = parse_curl_command(curl_command)
+    apis[index]['request_body'] = request_body  # Save the request body
+    
     total_time, data_size, response_status, response = execute_curl(curl_command)
     category = categorize_api(total_time, data_size)
     apis[index]['category'] = category
@@ -140,54 +145,67 @@ def export():
         story.append(Spacer(1, 12))
 
         # Introduction Section
-        story.append(Paragraph("Introduction", section_heading))
-        story.append(Paragraph(api['introduction'], styles['BodyText']))
-        story.append(Spacer(1, 12))
+        if api['introduction']:
+            story.append(Paragraph("Introduction", section_heading))
+            story.append(Paragraph(api['introduction'], styles['BodyText']))
+            story.append(Spacer(1, 12))
 
         # Authentication Section
-        story.append(Paragraph("Authentication", section_heading))
-        story.append(Paragraph(api['authentication'], styles['BodyText']))
-        story.append(Spacer(1, 12))
+        if api['authentication']:
+            story.append(Paragraph("Authentication", section_heading))
+            story.append(Paragraph(api['authentication'], styles['BodyText']))
+            story.append(Spacer(1, 12))
 
         # Endpoint Section
         story.append(Paragraph("Endpoints", section_heading))
         story.append(Spacer(1, 12))
         story.append(Paragraph(f"Curl Command: {api['curl']}", styles['BodyText']))
-        story.append(Paragraph(f"Method: {api['method']}", styles['BodyText']))
-        story.append(Paragraph(f"Endpoint: {api['endpoint']}", styles['BodyText']))
-        story.append(Paragraph(f"Request Headers: {api['request_headers']}", styles['BodyText']))
-        story.append(Paragraph(f"Request Body: {api['request_body']}", styles['BodyText']))
-        story.append(Paragraph(f"Response Status: {api['response_status']}", styles['BodyText']))
-        story.append(Paragraph(f"Response Body: {api['response_body']}", styles['BodyText']))
-        story.append(Paragraph(f"Category: {api['category']}", styles['BodyText']))
-
+        if api['method']:
+            story.append(Paragraph(f"Method: {api['method']}", styles['BodyText']))
+        if api['endpoint']:
+            story.append(Paragraph(f"Endpoint: {api['endpoint']}", styles['BodyText']))
+        if api['request_headers']:
+            story.append(Paragraph(f"Request Headers: {api['request_headers']}", styles['BodyText']))
+        if api['request_body']:
+            story.append(Paragraph(f"Request Body: {api['request_body']}", styles['BodyText']))
+        if api['response_status']:
+            story.append(Paragraph(f"Response Status: {api['response_status']}", styles['BodyText']))
+        if api['response_body']:
+            story.append(Paragraph(f"Response Body: {api['response_body']}", styles['BodyText']))
+        if api['category']:
+            story.append(Paragraph(f"Category: {api['category']}", styles['BodyText']))
         story.append(Spacer(1, 12))
 
         # Response Codes Section
-        story.append(Paragraph("Response Codes", section_heading))
-        for code in api['response_codes']:
-            story.append(Paragraph(f"{code['statusCode']}: {code['description']}", styles['BodyText']))
-        story.append(Spacer(1, 12))
+        if api['response_codes']:
+            story.append(Paragraph("Response Codes", section_heading))
+            for code in api['response_codes']:
+                story.append(Paragraph(f"{code['statusCode']}: {code['description']}", styles['BodyText']))
+            story.append(Spacer(1, 12))
 
         # Rate Limiting Section
-        story.append(Paragraph("Rate Limiting", section_heading))
-        story.append(Paragraph(api['rate_limiting'], styles['BodyText']))
-        story.append(Spacer(1, 12))
+        if api['rate_limiting']:
+            story.append(Paragraph("Rate Limiting", section_heading))
+            story.append(Paragraph(api['rate_limiting'], styles['BodyText']))
+            story.append(Spacer(1, 12))
 
         # Errors Section
-        story.append(Paragraph("Errors", section_heading))
-        story.append(Paragraph(api['errors'], styles['BodyText']))
-        story.append(Spacer(1, 12))
+        if api['errors']:
+            story.append(Paragraph("Errors", section_heading))
+            story.append(Paragraph(api['errors'], styles['BodyText']))
+            story.append(Spacer(1, 12))
 
         # Pagination Section
-        story.append(Paragraph("Pagination", section_heading))
-        story.append(Paragraph(api['pagination'], styles['BodyText']))
-        story.append(Spacer(1, 12))
+        if api['pagination']:
+            story.append(Paragraph("Pagination", section_heading))
+            story.append(Paragraph(api['pagination'], styles['BodyText']))
+            story.append(Spacer(1, 12))
 
         # Versioning Section
-        story.append(Paragraph("Versioning", section_heading))
-        story.append(Paragraph(api['versioning'], styles['BodyText']))
-        story.append(Spacer(1, 12))
+        if api['versioning']:
+            story.append(Paragraph("Versioning", section_heading))
+            story.append(Paragraph(api['versioning'], styles['BodyText']))
+            story.append(Spacer(1, 12))
 
         # Add a visual separator between APIs
         story.append(HRFlowable(width="100%", thickness=2, lineCap='round', color=colors.black, spaceBefore=1, spaceAfter=1))
