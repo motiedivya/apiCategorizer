@@ -29,6 +29,7 @@
                     <th>Endpoint</th>
                     <th>Request Headers</th>
                     <th>Request Body</th>
+                    <th>Response Status</th>
                     <th>Response Body</th>
                     <th>Execute</th>
                     <th>Category</th>
@@ -44,6 +45,7 @@
                     <td>{{ api.endpoint }}</td>
                     <td>{{ api.request_headers }}</td>
                     <td>{{ api.request_body }}</td>
+                    <td>{{ api.response_status }}</td>
                     <td>{{ api.response_body }}</td>
                     <td><button class="btn btn-primary" onclick="executeApi({{ loop.index0 }})">Execute</button></td>
                     <td id="category-{{ loop.index0 }}">{{ api.category }}</td>
@@ -67,59 +69,16 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <ul class="nav nav-tabs" id="apiTab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="details-tab" data-toggle="tab" href="#details" role="tab" aria-controls="details" aria-selected="true">Details</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="request-tab" data-toggle="tab" href="#request" role="tab" aria-controls="request" aria-selected="false">Request</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="response-tab" data-toggle="tab" href="#response" role="tab" aria-controls="response" aria-selected="false">Response</a>
-                        </li>
-                    </ul>
-                    <div class="tab-content" id="apiTabContent">
-                        <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
-                            <form id="apiForm">
-                                <div class="form-group">
-                                    <label for="apiName">API Name</label>
-                                    <input type="text" class="form-control" id="apiName" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="curlCommand">Curl Command</label>
-                                    <input type="text" class="form-control" id="curlCommand" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="method">Method</label>
-                                    <input type="text" class="form-control" id="method" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="endpoint">Endpoint</label>
-                                    <input type="text" class="form-control" id="endpoint" required>
-                                </div>
-                            </form>
+                    <form id="apiForm">
+                        <div class="form-group">
+                            <label for="apiName">API Name</label>
+                            <input type="text" class="form-control" id="apiName" required>
                         </div>
-                        <div class="tab-pane fade" id="request" role="tabpanel" aria-labelledby="request-tab">
-                            <form>
-                                <div class="form-group">
-                                    <label for="requestHeaders">Request Headers</label>
-                                    <textarea class="form-control" id="requestHeaders"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="requestBody">Request Body</label>
-                                    <textarea class="form-control" id="requestBody"></textarea>
-                                </div>
-                            </form>
+                        <div class="form-group">
+                            <label for="curlCommand">Curl Command</label>
+                            <input type="text" class="form-control" id="curlCommand" required>
                         </div>
-                        <div class="tab-pane fade" id="response" role="tabpanel" aria-labelledby="response-tab">
-                            <form>
-                                <div class="form-group">
-                                    <label for="responseBody">Response Body</label>
-                                    <textarea class="form-control" id="responseBody"></textarea>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -142,6 +101,9 @@
             }).then(response => response.json())
             .then(data => {
                 document.getElementById(`category-${data.index}`).innerText = data.category;
+                const apiRow = document.querySelectorAll(`#api-table-body tr`)[data.index];
+                apiRow.cells[6].innerText = data.response_status;
+                apiRow.cells[7].innerText = data.response_body;
             });
         }
 
@@ -152,20 +114,10 @@
         function addApi() {
             const apiName = document.getElementById('apiName').value;
             const curlCommand = document.getElementById('curlCommand').value;
-            const method = document.getElementById('method').value;
-            const endpoint = document.getElementById('endpoint').value;
-            const requestHeaders = document.getElementById('requestHeaders').value;
-            const requestBody = document.getElementById('requestBody').value;
-            const responseBody = document.getElementById('responseBody').value;
             if (apiName && curlCommand) {
                 const formData = new FormData();
                 formData.append('api_name', apiName);
                 formData.append('curl_command', curlCommand);
-                formData.append('method', method);
-                formData.append('endpoint', endpoint);
-                formData.append('request_headers', requestHeaders);
-                formData.append('request_body', requestBody);
-                formData.append('response_body', responseBody);
                 fetch('/add_api', {
                     method: 'POST',
                     body: formData
@@ -182,6 +134,7 @@
                             <td>${api.endpoint}</td>
                             <td>${api.request_headers}</td>
                             <td>${api.request_body}</td>
+                            <td>${api.response_status}</td>
                             <td>${api.response_body}</td>
                             <td><button class="btn btn-primary" onclick="executeApi(${index})">Execute</button></td>
                             <td id="category-${index}">${api.category}</td>
@@ -213,6 +166,7 @@
                         <td>${api.endpoint}</td>
                         <td>${api.request_headers}</td>
                         <td>${api.request_body}</td>
+                        <td>${api.response_status}</td>
                         <td>${api.response_body}</td>
                         <td><button class="btn btn-primary" onclick="executeApi(${index})">Execute</button></td>
                         <td id="category-${index}">${api.category}</td>

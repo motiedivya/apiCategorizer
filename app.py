@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, jsonify, send_file
 import subprocess
 import time
+import shlex
+import io
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-import io
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -19,7 +20,8 @@ def execute_curl(curl_command):
     total_time = end_time - start_time
     response = result.stdout.decode('utf-8')
     data_size = len(result.stdout)
-    return total_time, data_size, response
+    response_status = result.returncode
+    return total_time, data_size, response_status, response
 
 # Function to categorize API
 def categorize_api(total_time, data_size):
@@ -33,6 +35,29 @@ def categorize_api(total_time, data_size):
     else:
         return "Heavy"
 
+# Function to parse curl command
+def parse_curl_command(curl_command):
+    args = shlex.split(curl_command)
+    method = 'GET'
+    endpoint = ''
+    headers = {}
+    data = ''
+    
+    for i, arg in enumerate(args):
+        if arg == '-X' and i + 1 < len(args):
+            method = args[i + 1]
+        elif arg.startswith('http'):
+            endpoint = arg
+        elif arg == '-H' and i + 1 < len(args):
+            header = args[i + 1].split(':', 1)
+            if len(header) == 2:
+                headers[header[0].strip()] = header[1].strip()
+        elif arg == '--data' and i + 1 < len(args):
+            data = args[i + 1]
+
+    headers_str = '\n'.join([f"{k}: {v}" for k, v in headers.items()])
+    return method, endpoint, headers_str, data
+
 @app.route('/')
 def index():
     return render_template('index.html', apis=apis)
@@ -41,20 +66,18 @@ def index():
 def execute():
     index = int(request.form['index'])
     curl_command = apis[index]['curl']
-    total_time, data_size, response = execute_curl(curl_command)
+    total_time, data_size, response_status, response = execute_curl(curl_command)
     category = categorize_api(total_time, data_size)
     apis[index]['category'] = category
-    return jsonify(index=index, category=category, time=total_time, size=data_size)
+    apis[index]['response_status'] = response_status
+    apis[index]['response_body'] = response
+    return jsonify(index=index, category=category, response_status=response_status, response_body=response)
 
 @app.route('/add_api', methods=['POST'])
 def add_api():
     api_name = request.form['api_name']
     curl_command = request.form['curl_command']
-    method = request.form['method']
-    endpoint = request.form['endpoint']
-    request_headers = request.form['request_headers']
-    request_body = request.form['request_body']
-    response_body = request.form['response_body']
+    method, endpoint, request_headers, request_body = parse_curl_command(curl_command)
     apis.append({
         'name': api_name,
         'curl': curl_command,
@@ -62,7 +85,8 @@ def add_api():
         'endpoint': endpoint,
         'request_headers': request_headers,
         'request_body': request_body,
-        'response_body': response_body,
+        'response_status': '',
+        'response_body': '',
         'category': ''
     })
     return jsonify(apis=apis)
@@ -100,6 +124,8 @@ def export():
         pdf.drawString(30, y, f"Request Headers: {api['request_headers']}")
         y -= 15
         pdf.drawString(30, y, f"Request Body: {api['request_body']}")
+        y -= 15
+        pdf.drawString(30, y, f"Response Status: {api['response_status']}")
         y -= 15
         pdf.drawString(30, y, f"Response Body: {api['response_body']}")
         y -= 15
