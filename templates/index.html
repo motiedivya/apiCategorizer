@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API Categorizer</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         table {
             width: 100%;
@@ -17,41 +18,120 @@
     </style>
 </head>
 <body>
-    <h1>API Categorizer</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>API Name</th>
-                <th>API Curl Command</th>
-                <th>Method</th>
-                <th>Endpoint</th>
-                <th>Request Headers</th>
-                <th>Request Body</th>
-                <th>Response Body</th>
-                <th>Execute</th>
-                <th>Category</th>
-                <th>Delete</th>
-            </tr>
-        </thead>
-        <tbody id="api-table-body">
-            {% for api in apis %}
-            <tr>
-                <td>{{ api.name }}</td>
-                <td>{{ api.curl }}</td>
-                <td>{{ api.method }}</td>
-                <td>{{ api.endpoint }}</td>
-                <td>{{ api.request_headers }}</td>
-                <td>{{ api.request_body }}</td>
-                <td>{{ api.response_body }}</td>
-                <td><button onclick="executeApi({{ loop.index0 }})">Execute</button></td>
-                <td id="category-{{ loop.index0 }}">{{ api.category }}</td>
-                <td><button onclick="deleteApi({{ loop.index0 }})">Delete</button></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <button onclick="addApiRow()">+</button>
-    <button onclick="exportDocumentation()">Export</button>
+    <div class="container">
+        <h1 class="my-4">API Categorizer</h1>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>API Name</th>
+                    <th>API Curl Command</th>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Request Headers</th>
+                    <th>Request Body</th>
+                    <th>Response Body</th>
+                    <th>Execute</th>
+                    <th>Category</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody id="api-table-body">
+                {% for api in apis %}
+                <tr>
+                    <td>{{ api.name }}</td>
+                    <td>{{ api.curl }}</td>
+                    <td>{{ api.method }}</td>
+                    <td>{{ api.endpoint }}</td>
+                    <td>{{ api.request_headers }}</td>
+                    <td>{{ api.request_body }}</td>
+                    <td>{{ api.response_body }}</td>
+                    <td><button class="btn btn-primary" onclick="executeApi({{ loop.index0 }})">Execute</button></td>
+                    <td id="category-{{ loop.index0 }}">{{ api.category }}</td>
+                    <td><button class="btn btn-danger" onclick="deleteApi({{ loop.index0 }})">Delete</button></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button class="btn btn-success" onclick="showAddApiModal()">+</button>
+        <button class="btn btn-info" onclick="exportDocumentation()">Export</button>
+    </div>
+
+    <!-- Modal for Adding API -->
+    <div class="modal fade" id="addApiModal" tabindex="-1" aria-labelledby="addApiModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addApiModalLabel">Add API</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" id="apiTab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="details-tab" data-toggle="tab" href="#details" role="tab" aria-controls="details" aria-selected="true">Details</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="request-tab" data-toggle="tab" href="#request" role="tab" aria-controls="request" aria-selected="false">Request</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="response-tab" data-toggle="tab" href="#response" role="tab" aria-controls="response" aria-selected="false">Response</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="apiTabContent">
+                        <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
+                            <form id="apiForm">
+                                <div class="form-group">
+                                    <label for="apiName">API Name</label>
+                                    <input type="text" class="form-control" id="apiName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="curlCommand">Curl Command</label>
+                                    <input type="text" class="form-control" id="curlCommand" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="method">Method</label>
+                                    <input type="text" class="form-control" id="method" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="endpoint">Endpoint</label>
+                                    <input type="text" class="form-control" id="endpoint" required>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade" id="request" role="tabpanel" aria-labelledby="request-tab">
+                            <form>
+                                <div class="form-group">
+                                    <label for="requestHeaders">Request Headers</label>
+                                    <textarea class="form-control" id="requestHeaders"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="requestBody">Request Body</label>
+                                    <textarea class="form-control" id="requestBody"></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade" id="response" role="tabpanel" aria-labelledby="response-tab">
+                            <form>
+                                <div class="form-group">
+                                    <label for="responseBody">Response Body</label>
+                                    <textarea class="form-control" id="responseBody"></textarea>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="addApi()">Save API</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
         function executeApi(index) {
             const formData = new FormData();
@@ -65,14 +145,18 @@
             });
         }
 
-        function addApiRow() {
-            const apiName = prompt("Enter API name:");
-            const curlCommand = prompt("Enter curl command:");
-            const method = prompt("Enter method (GET/POST):");
-            const endpoint = prompt("Enter endpoint:");
-            const requestHeaders = prompt("Enter request headers:");
-            const requestBody = prompt("Enter request body:");
-            const responseBody = prompt("Enter response body:");
+        function showAddApiModal() {
+            $('#addApiModal').modal('show');
+        }
+
+        function addApi() {
+            const apiName = document.getElementById('apiName').value;
+            const curlCommand = document.getElementById('curlCommand').value;
+            const method = document.getElementById('method').value;
+            const endpoint = document.getElementById('endpoint').value;
+            const requestHeaders = document.getElementById('requestHeaders').value;
+            const requestBody = document.getElementById('requestBody').value;
+            const responseBody = document.getElementById('responseBody').value;
             if (apiName && curlCommand) {
                 const formData = new FormData();
                 formData.append('api_name', apiName);
@@ -99,12 +183,13 @@
                             <td>${api.request_headers}</td>
                             <td>${api.request_body}</td>
                             <td>${api.response_body}</td>
-                            <td><button onclick="executeApi(${index})">Execute</button></td>
+                            <td><button class="btn btn-primary" onclick="executeApi(${index})">Execute</button></td>
                             <td id="category-${index}">${api.category}</td>
-                            <td><button onclick="deleteApi(${index})">Delete</button></td>
+                            <td><button class="btn btn-danger" onclick="deleteApi(${index})">Delete</button></td>
                         `;
                         tbody.appendChild(row);
                     });
+                    $('#addApiModal').modal('hide');
                 });
             }
         }
@@ -129,9 +214,9 @@
                         <td>${api.request_headers}</td>
                         <td>${api.request_body}</td>
                         <td>${api.response_body}</td>
-                        <td><button onclick="executeApi(${index})">Execute</button></td>
+                        <td><button class="btn btn-primary" onclick="executeApi(${index})">Execute</button></td>
                         <td id="category-${index}">${api.category}</td>
-                        <td><button onclick="deleteApi(${index})">Delete</button></td>
+                        <td><button class="btn btn-danger" onclick="deleteApi(${index})">Delete</button></td>
                     `;
                     tbody.appendChild(row);
                 });
