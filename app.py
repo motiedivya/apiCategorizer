@@ -52,7 +52,7 @@ def parse_curl_command(curl_command):
             header = args[i + 1].split(':', 1)
             if len(header) == 2:
                 headers[header[0].strip()] = header[1].strip()
-        elif arg == '--data' and i + 1 < len(args):
+        elif arg in ['--data', '--data-raw', '--data-binary'] and i + 1 < len(args):
             data = args[i + 1]
 
     headers_str = '\n'.join([f"{k}: {v}" for k, v in headers.items()])
